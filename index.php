@@ -55,6 +55,6 @@
 	<script type="text/javascript" src="view/vendors/bootstrap-datetimepicker/bootstrap-datetimepicker.min.js"></script>
 	<script type="text/javascript" src="https://cdn.jsdelivr.net/lodash/4.17.4/lodash.min.js"></script>
 	<script src="https://maps.googleapis.com/maps/api/js?v=3.exp&libraries=places&key=AIzaSyCdQ6OyIOEEUdq76Hej1PO8AuF_4Ilsm8g"></script>
-	<script type="text/javascript" src="view/js/main.js"></script>
+	<script type="text/javascript" src="view/js/bundle.js"></script>
 </body>
 </html>

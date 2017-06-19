@@ -1,3 +1,8 @@
+import Weather from '../Weather/Weather';
+import TabData from '../Weather/TabData';
+import * as ReactDOM from 'react-dom';
+import React from 'react';
+
 $(document).ready(function(){
 	jQuery.fn.scrollTo = function(elem, speed) { 
 	    $(this).animate({
@@ -6,15 +11,15 @@ $(document).ready(function(){
 	    return this; 
 	};
 	init();
-	var loader = $('.loader');
-	var weather_form = $('.weather_form');
-	var datetimepicker = $('#datetimepicker');
-	var datetimepicker_input = datetimepicker.find('input');
-	var city = $('#city');
+	let loader = $('.loader');
+	let weather_form = $('.weather_form');
+	let datetimepicker = $('#datetimepicker');
+	let datetimepicker_input = datetimepicker.find('input');
+	let city = $('#city');
 	google.maps.event.addDomListener(window, 'load', init);
-	var date = new Date();
-	var today = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-	var last_day = today;
+	let date = new Date();
+	let today = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+	let last_day = today;
 
 	datetimepicker.datetimepicker({
 		locale: 'ru',
@@ -31,8 +36,8 @@ $(document).ready(function(){
 
 	$(window).scroll(_.debounce(function() {
 		if ($(window).width() <= 768) {
-			var scroll = $(this).scrollTop();
-			var weather = $('#weather');
+			let scroll = $(this).scrollTop();
+			let weather = $('#weather');
 			if (scroll >= $('.from_db').outerHeight() + $('#row').outerHeight()) {
 				weather.addClass('fixed');
 				$('#tab_data').css('margin-top', weather.height());
@@ -79,8 +84,8 @@ $(document).ready(function(){
 
 	//подключаем автокомплит к городу
 	function init() {
-	    var input = document.getElementById('city');
-	    var autocomplete = new google.maps.places.Autocomplete(input);
+	    let input = document.getElementById('city');
+	    let autocomplete = new google.maps.places.Autocomplete(input);
 	}
 
 	function addWeatherToDb(json) {
@@ -106,8 +111,8 @@ $(document).ready(function(){
 			data: {getWeatherJson: true, query: city.val(), date: moment(datetimepicker_input.val(),'DD.MM.YY').format('YYYY-MM-DD')}
 		})
 			.done(function(response) {
-				if (response != "fail") {
-					var json = JSON.parse(JSON.parse(response).json);
+				if (response != 'fail') {
+					let json = JSON.parse(JSON.parse(response).json);
 					renderMap(city.val(), false);
 					renderWeather(json, datetimepicker_input.val());
 					$('.from_db').show();
@@ -128,9 +133,9 @@ $(document).ready(function(){
 			.done(function(response) {
 				if (response.status !== 'ZERO_RESULTS') {
 					$('.city').removeClass('red_border');
-					var location = response.results[0].geometry.location;
-					var formatted_city;
-					if (typeof response.results[0].address_components[3] !== "undefined")
+					let location = response.results[0].geometry.location;
+					let formatted_city;
+					if (typeof response.results[0].address_components[3] !== 'undefined')
 						formatted_city = city + ',' + response.results[0].address_components[3].short_name;
 					else
 						formatted_city = city;
@@ -158,12 +163,12 @@ $(document).ready(function(){
 
 	//настраиваем карту
 	function setUpMap(lat, lng) {
-		var coords = {lat: lat, lng: lng};
-		var map = new google.maps.Map(document.getElementById('map'), {
+		let coords = {lat: lat, lng: lng};
+		let map = new google.maps.Map(document.getElementById('map'), {
 			zoom: 10,
 			center: coords
 		});
-		var marker = new google.maps.Marker({
+		let marker = new google.maps.Marker({
 			position: coords,
 			map: map
 		});
@@ -171,8 +176,8 @@ $(document).ready(function(){
 
 	//преобразуем градусы в направление
 	function degreeToDirection(deg) {
-		var temp = parseInt((deg/22.5)+ 0.5);
-		var directions = ["С","ССВ","СВ","ВСВ","В","ВЮВ", "ЮВ", "ЮЮВ","Ю","ЮЮЗ","ЮЗ","ЗЮЗ","З","ЗСЗ","СЗ","ССЗ"];
+		let temp = parseInt((deg/22.5)+ 0.5);
+		let directions = ['С','ССВ','СВ','ВСВ','В','ВЮВ', 'ЮВ', 'ЮЮВ','Ю','ЮЮЗ','ЮЗ','ЗЮЗ','З','ЗСЗ','СЗ','ССЗ'];
 		return directions[temp % 16];
 	}
 
@@ -180,77 +185,54 @@ $(document).ready(function(){
 	function renderWeather(obj, input_date) {
 		input_date = input_date.replace('.', '_').replace('.', '_');
 		//группируем ответ по дням
-		var groups = _.groupBy(obj.list, function(elem){
+		let groups = _.groupBy(obj.list, function(elem){
 			return elem.dt_txt.substr(0,10);
 		});
-		//удаляем лишний день, т.к. погода рассчитана на 5 дней
 		Object.keys(groups).forEach(function(item,i){if (i >= 5) delete groups[item]});
-		var weatherBlock = $('#weather');
-		var tabsBlock = $('#tab_data');
-		var weatherHtml = '<div class="tabs"><div class="row"><div class="col-md-1 col-sm-1 col-xs-1"></div>';
-		var tabs_html = '';
-		var months = [ "Января", "Февраля", "Марта", "Апреля", "Мая", "Июня", "Июля", "Августа", "Сентября", "Октября", "Ноября", "Декабря" ];
-		//для каждого дня
-		Object.keys(groups).forEach(function(item, i) {
-			var elem = groups[item];
-			//console.log(elem);
-			var dayOfWeek = moment().add(i, 'day').locale("ru").format('dddd');
-			var dayMonth = moment().add(i, 'day').locale("ru").format('DD') + ' ' + months[moment().add(i, 'day').locale("ru").format('M')-1];
-			var date = moment().add(i, 'day').locale("ru").format('DD_MM_YY');
-			//погода в названии вкладки берется либо ближайшая, либо, если имеется, дневная(12:00) 
-			var day_weather_icon = elem[0].weather[0].icon;
-			var day_weather_temp = Math.floor(elem[0].main.temp);
-			elem.forEach(function(item, i) {
-				if (item.dt_txt.substr(11, 9) == "12:00:00") {
-					day_weather_icon = item.weather[0].icon;
-					day_weather_temp = Math.floor(item.main.temp);
-				}
-			})
-			//название вкладки
-			weatherHtml += 
-				'<div class="tab col-md-2 col-sm-2 col-xs-2" id="' + date + '">' +
-					'<div class="weather_image"><img src="view/images/' + day_weather_icon + '.png"></div>' +
-					'<div class="temp_day">' + day_weather_temp + ' &deg;C</div>' +
-					'<div class="dayOfWeek">' + dayOfWeek + '</div>' +
-				'</div>';
-			//вся погода за один день
-			tabs_html += 
-				'<div class="tab_data">' +
-					'<div class="row">' +
-						'<div class="day_of_week">' + dayOfWeek + ', ' + dayMonth + '</div>' +
-					'</div>';
-			//через каждые 3 часа
-			elem.forEach(function(item, i) {
-				tabs_html += 
-					'<div class="row">' +
-						'<div class="col-md-2 col-sm-2 col-xs-2 day_img">' +
-							'<img src="view/images/' + item.weather[0].icon + '.png">' +
-						'</div>' +
-						'<div class="col-md-2 col-md-offset-1 col-sm-2 col-sm-offset-1 col-xs-2 day_temp">' +
-							'<div class="temp_day">' + Math.floor(item.main.temp) + ' &deg;C</div>' +
-							'<div>' + item.dt_txt.substr(11,5) + '</div>' +
-						'</div>' +
-						'<div class="col-md-4 col-sm-4 col-xs-5">'+
-							'<div class="pressure">Давление: ' + Math.floor(item.main.pressure * 0.750064) + ' мм. рт. ст.</div>' +
-							'<div class="wind_speed">Скорость ветра: ' + item.wind.speed + ' м/с,</div>' +
-							'<div class="wind_direction">' + degreeToDirection(item.wind.deg) + '</div>' +
-						'</div>' +
-						'<div class="col-md-3 col-sm-3 col-xs-3">' +
-							'<div class="humidity">' + item.main.humidity + ' %</div>' +
-							'<div>Влажность</div>' +
-						'</div>' +
-					'</div>';
+		let tabsBlock = $('#tab_data');
+		let tabs_html = '';
+		let months = [ 'Января', 'Февраля', 'Марта', 'Апреля', 'Мая', 'Июня', 'Июля', 'Августа', 'Сентября', 'Октября', 'Ноября', 'Декабря' ];
+
+        let tabs = [];
+        let tabData = [];
+        Object.keys(groups).forEach(function (item, i) {
+            let elem = groups[item];
+            let dayOfWeek = moment().add(i, 'day').locale('ru').format('dddd');
+            let dayMonth = moment().add(i, 'day').locale("ru").format('DD') + ' ' + months[moment().add(i, 'day').locale("ru").format('M')-1];
+            let date = moment().add(i, 'day').locale('ru').format('DD_MM_YY');
+            let dayWeatherIcon = elem[0].weather[0].icon;
+            let dayWeatherTemp = Math.floor(elem[0].main.temp);
+            elem.forEach(function (item, i) {
+                if (item.dt_txt.substr(11, 9) === '12:00:00') {
+                    dayWeatherIcon = item.weather[0].icon;
+                    dayWeatherTemp = Math.floor(item.main.temp);
+                }
+            });
+            tabData.push({
+                dayOfWeek,
+                dayMonth,
+				elem
 			});
-			tabs_html += 
-				'</div>';
-		});
-		weatherHtml += '</div></div>';
-		weatherBlock.html(weatherHtml);
-		tabsBlock.html(tabs_html);
+            tabs.push({
+                date,
+                dayWeatherIcon,
+                dayWeatherTemp,
+                dayOfWeek
+			});
+        });
+        ReactDOM.render(
+			<Weather tabs={tabs} groups={groups}/>,
+            document.getElementById('weather')
+        );
+        ReactDOM.render(
+			<TabData tabData={tabData} groups={groups}/>,
+            document.getElementById('tab_data')
+        );
+
 		tabsBlock.show();
 
-		var tab_data = $('.tab_data');
-		var tab = $('.tab');
+		let tab_data = $('.tab_data');
+		let tab = $('.tab');
 		//устанавливаем фокус на вкладку по дате
 		tab.removeClass('hover');
 		$('#' + input_date).addClass('hover');
@@ -260,15 +242,15 @@ $(document).ready(function(){
 			$('#' + $(this).find('input').val().replace('.', '_').replace('.', '_')).click();
 		})*/
 		//
-		var canScroll = true;
+		let canScroll = true;
 		//перемещение по вкладкам при скролле
 		tabsBlock.off();
 		tabsBlock.scroll(function(){
 			if (canScroll) {
 				//устанавливаем фокус на вкладку по индексу ближайшего к верху дня
-				var scroll = $(this).scrollTop();
-				var top_max = 5000;
-				var index = 0;
+				let scroll = $(this).scrollTop();
+				let top_max = 5000;
+				let index = 0;
 				tab_data.each(function(i) {
 					if (Math.abs($(this).position().top) < top_max) {
 						top_max = Math.abs($(this).position().top);
@@ -283,14 +265,13 @@ $(document).ready(function(){
 		tab.each(function(i) {
 			$(this).click(function() {
 				canScroll = false;
-				tabsBlock.scrollTo(tab_data[i],500);
+				tabsBlock.scrollTo(tab_data[i],200);
 				tab.removeClass('hover');
 				$(this).addClass('hover');
 				setTimeout(function() {
 					canScroll = true;
-				}, 500)
+				}, 200)
 			})
-			
 		})
 		setTimeout(function() {
 			loader.hide();
@@ -299,13 +280,13 @@ $(document).ready(function(){
 			city.val('');
 			datetimepicker_input.val('');
 			responsive();
-		}, 500)
+		}, 300)
 		
 		
 	}
 	function responsive() {
 		if ($(window).width() <= 768 ) {
-			var max = 0;
+			let max = 0;
 			$('.tab_data').each(function() {
 				if ($(this).height() > max)
 					max = $(this).height();
@@ -319,7 +300,7 @@ $(document).ready(function(){
 		}
 	}
 	function isIE () {
-		var myNav = navigator.userAgent.toLowerCase();
+		let myNav = navigator.userAgent.toLowerCase();
 		return (myNav.indexOf('msie') != -1) ? parseInt(myNav.split('msie')[1]) : false;
 	}
 });

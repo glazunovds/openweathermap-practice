@@ -63,15 +63,26 @@ module.exports = {
 
         new webpack.DefinePlugin({
             'process.env': {
-                NODE_ENV: JSON.stringify('development')
+                NODE_ENV: JSON.stringify('production')//development
             }
         }),
 
-        /*new webpack.optimize.UglifyJsPlugin({
-            sourceMap: true
-        }),*/
+        new webpack.optimize.UglifyJsPlugin({
+            sourceMap: false,
+            beautify: false,
+            comments: false,
+            compress: {
+                sequences     : true,
+                booleans      : true,
+                loops         : true,
+                unused      : true,
+                warnings    : false,
+                drop_console: true,
+                unsafe      : true
+            }
+        }),
 
-        new webpack.NamedModulesPlugin(),
+        //new webpack.NamedModulesPlugin(),
         // prints more readable module names in the browser console on HMR updates
     ],
 };
